@@ -1,7 +1,7 @@
-const fs = require('fs');
-const postCodeReview = require('./post-code-review')
+import fs from 'fs';
+import postCodeReview from './post-code-review.js';
 
-async function parseYamllintOutput(github, context, filepath, post_warnings, open_issues) {
+async function parseYamllintOutput (github, context, filepath, post_warnings, open_issues) {
   const rawOutput = fs.readFileSync(filepath, 'utf-8');
 
   const lines = rawOutput.trim().split('\n');
@@ -18,16 +18,16 @@ async function parseYamllintOutput(github, context, filepath, post_warnings, ope
     } else {
       const match = line.match(/::(.+) file=(.+),line=(\d+),col=\d+::\d+:\d+ \[(.*?)\] (.+)/);
       if (match) {
-        const [, level, _, lineNum, rule, message] = match;
+        const [ , level, , lineNum, rule, message ] = match;
         const errorLevel = level[0].toUpperCase() + level.slice(1);
-        
-        if(errorLevel === 'Warning' && post_warnings === 'false') {
+
+        if (errorLevel === 'Warning' && post_warnings === 'false') {
           continue; // Skip warnings if post_warnings is false
-        }else{
+        } else {
           if (!grouped[currentFile][lineNum]) {
             grouped[currentFile][lineNum] = [];
           }
-          grouped[currentFile][lineNum].push(`Line ${lineNum}: [${errorLevel}] [${rule}] ${message}`);
+          grouped[currentFile][lineNum].push(`Line ${ lineNum }: [${ errorLevel }] [${ rule }] ${ message }`);
         }
       }
     }
@@ -35,14 +35,14 @@ async function parseYamllintOutput(github, context, filepath, post_warnings, ope
 
   // Format output and open issue comments
   let result = '';
-  for (const [file, issues] of Object.entries(grouped)) {
-    result += `${file}\n`;
-    
+  for (const [ file, issues ] of Object.entries(grouped)) {
+    result += `${ file }\n`;
+
     for (const line of Object.keys(issues)) {
       const messages = issues[line];
-      result += `line=${line}\n`;
+      result += `line=${ line }\n`;
       for (const msg of messages) {
-        result += `  ${msg}\n`;
+        result += `  ${ msg }\n`;
       }
 
       if (open_issues === 'true') {
@@ -54,4 +54,4 @@ async function parseYamllintOutput(github, context, filepath, post_warnings, ope
   fs.writeFileSync(filepath, result.trim());
 }
 
-module.exports = parseYamllintOutput;
+export default parseYamllintOutput;

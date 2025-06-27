@@ -1,12 +1,12 @@
-async function postCodeReview(github, context, filepath, line, commentBody){
+async function postCodeReview (github, context, filepath, line, commentBody) {
   await github.rest.pulls.createReviewComment({
     ...context.repo,
     pull_number: context.issue.number,
     commit_id: context.payload.pull_request.head.sha,
     path: filepath,
-    position: parseInt(line),
-    body: commentBody
+    position: line,
+    body: commentBody,
   });
 }
 
-module.exports = postCodeReview;
+export default postCodeReview;
