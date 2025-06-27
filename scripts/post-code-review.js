@@ -1,4 +1,4 @@
-async function postCodeReview (github, context, filepath, line, commentBody) {
+export default async function postCodeReview (github, context, filepath, line, commentBody) {
   await github.rest.pulls.createReviewComment({
     ...context.repo,
     pull_number: context.issue.number,
@@ -8,5 +8,3 @@ async function postCodeReview (github, context, filepath, line, commentBody) {
     body: commentBody,
   });
 }
-
-export default postCodeReview;

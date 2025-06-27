@@ -1,7 +1,7 @@
 import fs from 'fs';
 import postCodeReview from './post-code-review.js';
 
-async function parseYamllintOutput (github, context, filepath, post_warnings, open_issues) {
+export default async function parseYamllintOutput (github, context, filepath, post_warnings, open_issues) {
   const rawOutput = fs.readFileSync(filepath, 'utf-8');
 
   const lines = rawOutput.trim().split('\n');
@@ -53,5 +53,3 @@ async function parseYamllintOutput (github, context, filepath, post_warnings, op
 
   fs.writeFileSync(filepath, result.trim());
 }
-
-export default parseYamllintOutput;

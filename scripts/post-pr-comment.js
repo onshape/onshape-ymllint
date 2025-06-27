@@ -7,7 +7,7 @@ const ansiPattern = [
 
 const ansiRegExp = new RegExp(ansiPattern, 'gu');
 
-async function postPullRequestComment (github, context, header, message, errorFile, shouldExit) {
+export default async function postPullRequestComment (github, context, header, message, errorFile, shouldExit) {
   if (!errorFile && !message) {
     console.log('no message or error file provided');
     process.exit(1);
@@ -35,5 +35,3 @@ async function postPullRequestComment (github, context, header, message, errorFi
 function stripAnsi (string) {
   return string.replace(ansiRegExp, '');
 }
-
-export default postPullRequestComment;
