@@ -76,9 +76,9 @@ runs:
         script: |
           const process_output_script = require("${{ github.action_path }}/scripts/process-yamllint-output.js")
           const post_pr_script = require("${{ github.action_path }}/scripts/post-pr-comment.js")
-          await process_output_script(github, context, "${{ env.tempfile }}", "${{inputs.post-warnings}}", "${{inputs.open-issues}}")
+          await process_output_script.default(github, context, "${{ env.tempfile }}", "${{inputs.post-warnings}}", "${{inputs.open-issues}}")
           if("${{inputs.post-summary}}" === 'true') {
-            await post_pr_script(github, context, "Yaml Linter Reuse Result", "Found Error", "${{ env.tempfile }}", false)
+            await post_pr_script.default(github, context, "Yaml Linter Reuse Result", "Found Error", "${{ env.tempfile }}", false)
           }
 
     - name: Exit work flow
