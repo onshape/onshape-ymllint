@@ -1,0 +1,91 @@
+name: "Yaml-Lint"
+description:
+  "A GitHub Action to validate YAML files using yamllint and add commments on pull requests"
+
+inputs:
+  post-comments:
+    description: "Whether to post information in PR comments"
+    required: false
+    default: "true"
+    type: boolean
+
+  post-warnings:
+    description: "Whether to post warnings in PR comments"
+    required: false
+    default: "true"
+    type: boolean
+
+  post-summary:
+    description: "Whether to post that final summary of every error/warning"
+    required: false
+    default: "true"
+    type: boolean
+
+  open-issues:
+    description: "Whether to open issues in code review line by line"
+    required: false
+    default: "true"
+    type: boolean
+
+runs:
+  using: "composite"
+  steps:
+    - name: Grab github env variables
+      run: |
+        echo "github_base_ref=${{ github.base_ref }}" >> $GITHUB_ENV
+        echo "github_action_path=${{ github.action_path }}" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Install yamllint
+      run: pip install yamllint==1.37.1
+      shell: bash
+
+    - name: Run yamllint
+      continue-on-error: true
+      run: |
+        set +e
+        ${{ github.action_path }}/entrypoint.sh
+        exit_code="$?"
+        echo "exit_code=$exit_code" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Setup Node.js
+      if: ${{ inputs.post-comments == 'true' }} && (env.exit_code == '1' || (env.exit_code == '2' && inputs.post_warnings == 'true'))
+      uses: onshape/actions-setup-node@onshape-latest
+      with:
+        node-version: '22'
+
+    - name: Install node packages
+      if: inputs.post-comments == 'true' && (env.exit_code == '1' || (env.exit_code == '2' && inputs.post-warnings == 'true' ))
+      run: cd ${{ github.action_path }}/scripts/ && npm install
+      shell: bash
+
+    - name: Test get tempfile
+      if: inputs.post-comments == 'true' && (env.exit_code == '1' || (env.exit_code == '2' && inputs.post-warnings == 'true' ))
+      run: |
+        source ${{ github.action_path }}/entrypoint.sh
+        tempfile=$(get_tempfile)
+        cat $tempfile
+        echo "tempfile=$tempfile" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Create Pull Request Comment for errors
+      if: inputs.post-comments == 'true' && (env.exit_code == '1' || (env.exit_code == '2' && inputs.post-warnings == 'true' ))
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const process_output_script = require("${{ github.action_path }}/scripts/process-yamllint-output.js")
+          const post_pr_script = require("${{ github.action_path }}/scripts/post-pr-comment.js")
+          await process_output_script.default(github, context, "${{ env.tempfile }}", "${{inputs.post-warnings}}", "${{inputs.open-issues}}")
+          if("${{inputs.post-summary}}" === 'true') {
+            await post_pr_script.default(github, context, "Yaml Linter Reuse Result", "Found Error", "${{ env.tempfile }}", false)
+          }
+
+    - name: Exit work flow
+      run: |
+        if [ "${{ env.exit_code }}" == '1' ]; then
+          exit 1
+        else
+          exit 0
+        fi
+      shell: bash
