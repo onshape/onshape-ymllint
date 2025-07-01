@@ -5,6 +5,8 @@ export default async function postCodeReview (github, context, filepath, line, c
     commit_id: context.payload.pull_request.head.sha,
     path: filepath,
     position: parseInt(line, 10),
+    start_line: parseInt(line, 10),
+    line: parseInt(line, 10),
     body: commentBody,
   });
 }
